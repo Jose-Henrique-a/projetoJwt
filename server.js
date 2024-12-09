@@ -38,6 +38,11 @@ app.use(express.static('views')); // Serve arquivos estáticos da pasta 'views'
 // Middleware para parsear JSON
 app.use(express.json());
 
+// Rota de inicio
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/views/index.html');
+});
+
 // Rota de registro de usuário
 app.post('/register', async (req, res) => {
     try {
