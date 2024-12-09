@@ -151,18 +151,6 @@ app.post('/tasks/create', authenticateJWT, async (req, res) => {
     }
 });
 
-// ler tarefa
-app.get('/tasks', authenticateJWT, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-        const [rows] = await pool.execute('SELECT * FROM tasks WHERE userId = ?', [userId]);
-        res.json(rows);
-    } catch (error) {
-        console.error("Erro ao listar tarefas:", error);
-        res.status(500).json({ error: 'Erro ao listar tarefas' });
-    }
-});
-
 // atualizar tarefa
 app.put('/tasks/:id', authenticateJWT, async (req, res) => {
     try {
