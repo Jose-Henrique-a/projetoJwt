@@ -246,6 +246,40 @@ function authenticateJWT(req, res, next) {
     }
 }
 
+// Trocar de senha
+app.put('/users/password', authenticateJWT, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+        }
+        if (newPassword !== confirmNewPassword) {
+            return res.status(400).json({ error: 'As novas senhas não coincidem' });
+        }
+
+        const [rows] = await pool.execute('SELECT * FROM users WHERE id = ?', [userId]);
+        const user = rows[0];
+
+        const passwordMatch = bcrypt.compareSync(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Senha atual incorreta' });
+        }
+
+        const salt = bcrypt.genSaltSync(10);
+        const hashedNewPassword = bcrypt.hashSync(newPassword, salt);
+
+        await pool.execute('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId]);
+
+        res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error) {
+        console.error('Erro ao alterar senha:', error);
+        res.status(500).json({ error: 'Erro ao alterar senha' });
+    }
+});
+
+
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
 });
